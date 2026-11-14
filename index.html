@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lokkhi & Fyad • Our Private Corner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 45%, #fdf2f8 100%);
+      min-height: 100vh;
+    }
+    .handwriting {
+      font-family: 'Caveat', cursive;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.8); opacity: 1; }
+      100% { transform: translateY(-180px) scale(1.5); opacity: 0; }
+    }
+    .floating-heart {
+      position: fixed;
+      pointer-events: none;
+      animation: floatUp 2.2s ease-out forwards;
+      z-index: 9999;
+    }
+    .polaroid {
+      background: white;
+      padding: 12px 12px 32px 12px;
+      box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.15);
+      transition: transform 0.25s ease;
+    }
+    .polaroid:hover {
+      transform: scale(1.03) rotate(0deg) !important;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body class="text-rose-950 antialiased selection:bg-rose-200">
+
+  <!-- ==================== 1. SECRET PASSCODE LOCK SCREEN ==================== -->
+  <div id="lockScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-rose-100 via-pink-100 to-amber-50 p-4">
+    <div class="w-full max-w-md rounded-3xl bg-white/90 p-8 text-center shadow-2xl backdrop-blur-md border border-rose-200">
+      <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-rose-100 text-3xl shadow-inner">
+        🔐
+      </div>
+      <h1 class="handwriting text-4xl font-bold text-rose-600">Lokkhi & Fyad</h1>
+      <p class="mt-1 text-sm text-rose-500">Our secret corner. Enter our passcode to unlock 💕</p>
+
+      <form id="unlockForm" class="mt-6 space-y-4">
+        <input
+          type="password"
+          id="passcodeInput"
+          placeholder="Enter secret passcode..."
+          class="w-full rounded-2xl border border-rose-200 bg-rose-50/50 px-4 py-3 text-center text-lg font-semibold tracking-widest text-rose-900 placeholder-rose-300 focus:border-rose-400 focus:bg-white focus:outline-none"
+          required
+        />
+        <p id="passcodeError" class="hidden text-xs font-semibold text-red-500">Wrong passcode! Only Lokkhi & Fyad know this 🙈</p>
+        <button
+          type="submit"
+          class="w-full rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 py-3 font-bold text-white shadow-lg shadow-rose-200 transition hover:from-rose-600 hover:to-pink-600 active:scale-95"
+        >
+          Unlock Our World ✨
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 2. MAIN APP CONTAINER ==================== -->
+  <div id="mainApp" class="hidden mx-auto max-w-4xl px-4 pb-24 pt-6">
+
+    <!-- Header & Identity Switcher -->
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-white/80 p-4 shadow-sm backdrop-blur-md border border-rose-100">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🏡</span>
+        <div>
+          <h1 class="handwriting text-3xl font-bold text-rose-600 leading-none">Lokkhi & Fyad</h1>
+          <p class="text-xs text-rose-400 font-medium">Connected in real-time • Just the two of us</p>
+        </div>
+      </div>
+
+      <!-- Who is using the app right now? -->
+      <div class="flex items-center gap-2 rounded-2xl bg-rose-50 p-1.5 border border-rose-200">
+        <span class="pl-2 text-xs font-semibold text-rose-500">I am:</span>
+        <button id="btnUserLokkhi" onclick="setCurrentUser('Lokkhi')" class="rounded-xl px-3 py-1.5 text-xs font-bold transition">
+          Lokkhi 🌸
+        </button>
+        <button id="btnUserFyad" onclick="setCurrentUser('Fyad')" class="rounded-xl px-3 py-1.5 text-xs font-bold transition">
+          Fyad 🎸
+        </button>
+        <button onclick="lockApp()" title="Lock Screen" class="ml-1 rounded-xl p-1.5 text-rose-400 hover:bg-rose-100 hover:text-rose-600">
+          🔒
+        </button>
+      </div>
+    </header>
+
+    <!-- Live Heart Notification Banner -->
+    <div id="heartAlertBanner" class="mb-6 hidden items-center justify-between gap-4 rounded-3xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-400 p-4 text-white shadow-lg">
+      <div class="flex items-center gap-3">
+        <span class="animate-bounce text-3xl">💌</span>
+        <div>
+          <p id="heartAlertText" class="font-bold text-sm sm:text-base">Lokkhi sent you a heart!</p>
+          <p id="heartAlertSub" class="text-xs text-rose-100">Tap to send one right back</p>
+        </div>
+      </div>
+      <button onclick="sendHeart(true)" class="shrink-0 rounded-2xl bg-white px-4 py-2 text-xs font-bold text-rose-600 shadow transition hover:bg-rose-50 active:scale-95">
+        Click Back 💖
+      </button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="mb-6 grid grid-cols-5 gap-2 rounded-2xl bg-white/80 p-1.5 shadow-sm border border-rose-100">
+      <button onclick="switchTab('heart')" id="tab-heart" class="tab-btn rounded-xl py-2.5 text-xs sm:text-sm font-bold transition">💖 Heart</button>
+      <button onclick="switchTab('diary')" id="tab-diary" class="tab-btn rounded-xl py-2.5 text-xs sm:text-sm font-bold transition">📖 Diary</button>
+      <button onclick="switchTab('album')" id="tab-album" class="tab-btn rounded-xl py-2.5 text-xs sm:text-sm font-bold transition">📸 Album</button>
+      <button onclick="switchTab('songs')" id="tab-songs" class="tab-btn rounded-xl py-2.5 text-xs sm:text-sm font-bold transition">🎸 Songs</button>
+      <button onclick="switchTab('games')" id="tab-games" class="tab-btn rounded-xl py-2.5 text-xs sm:text-sm font-bold transition">🎮 Games</button>
+    </nav>
+
+    <!-- ==================== TAB 1: SEND A HEART ==================== -->
+    <section id="view-heart" class="view-section">
+      <div class="rounded-3xl bg-white/90 p-8 text-center shadow-md border border-rose-100">
+        <p id="heartInstruction" class="text-sm font-semibold text-rose-500">Tap the heart to ping Fyad instantly!</p>
+
+        <div class="my-8 flex justify-center">
+          <button
+            onclick="sendHeart(false)"
+            class="group relative flex h-40 w-40 items-center justify-center rounded-full bg-gradient-to-tr from-rose-500 to-pink-400 text-7xl shadow-xl shadow-rose-200 transition duration-300 hover:scale-105 active:scale-90"
+          >
+            <span class="transition-transform group-hover:scale-110">❤️</span>
+            <span class="absolute -bottom-3 rounded-full bg-white px-3 py-1 text-xs font-bold text-rose-600 shadow">
+              Tap Me
+            </span>
+          </button>
+        </div>
+
+        <div class="mx-auto max-w-sm">
+          <input
+            type="text"
+            id="heartNoteInput"
+            placeholder="Add a cute note (optional, e.g. 'Miss you!')"
+            class="w-full rounded-2xl border border-rose-200 bg-rose-50/40 px-4 py-2.5 text-center text-sm focus:border-rose-400 focus:bg-white focus:outline-none"
+          />
+        </div>
+
+        <!-- Recent Heart Pings Log -->
+        <div class="mt-8 border-t border-rose-100 pt-6 text-left">
+          <h3 class="mb-3 text-xs font-bold uppercase tracking-wider text-rose-400">Recent Heart Pings</h3>
+          <div id="heartHistoryList" class="space-y-2 max-h-48 overflow-y-auto"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: SHARED DIARY ==================== -->
+    <section id="view-diary" class="view-section hidden space-y-6">
+      <div class="rounded-3xl bg-white/90 p-6 shadow-md border border-rose-100">
+        <h2 class="handwriting text-3xl font-bold text-rose-600 mb-3">Write in Our Shared Diary ✍️</h2>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <select id="diaryMood" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 focus:outline-none">
+            <option value="🥰 Loving">🥰 Loving</option>
+            <option value="😊 Happy">😊 Happy</option>
+            <option value="🥺 Missing You">🥺 Missing You</option>
+            <option value="😴 Tired">😴 Tired</option>
+            <option value="🎉 Excited">🎉 Excited</option>
+          </select>
+          <input id="diaryTitle" type="text" placeholder="Entry title..." class="flex-1 rounded-xl border border-rose-200 px-3 py-2 text-sm focus:border-rose-400 focus:outline-none" />
+        </div>
+        <textarea id="diaryBody" rows="3" placeholder="Dear diary, today..." class="w-full rounded-2xl border border-rose-200 p-3 text-sm focus:border-rose-400 focus:outline-none"></textarea>
+        <button onclick="addDiaryEntry()" class="mt-3 rounded-2xl bg-rose-500 px-6 py-2.5 text-sm font-bold text-white shadow hover:bg-rose-600">
+          Save Page 💕
+        </button>
+      </div>
+
+      <div id="diaryEntriesList" class="space-y-4"></div>
+    </section>
+
+    <!-- ==================== TAB 3: POLAROID PHOTO ALBUM ==================== -->
+    <section id="view-album" class="view-section hidden space-y-6">
+      <div class="rounded-3xl bg-white/90 p-6 shadow-md border border-rose-100">
+        <h2 class="handwriting text-3xl font-bold text-rose-600 mb-2">Add to Our Photo Album 📸</h2>
+        <p class="text-xs text-rose-400 mb-4">Take a selfie or pick a favorite photo together!</p>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input type="file" id="photoFileInput" accept="image/*" capture="environment" class="text-xs text-rose-600 file:mr-3 file:rounded-xl file:border-0 file:bg-rose-100 file:px-4 file:py-2 file:font-bold file:text-rose-700 hover:file:bg-rose-200" />
+          <input type="text" id="photoCaptionInput" placeholder="Write a sweet caption..." class="flex-1 rounded-xl border border-rose-200 px-3 py-2 text-sm focus:border-rose-400 focus:outline-none" />
+          <button onclick="uploadPhoto()" class="rounded-xl bg-rose-500 px-5 py-2 text-sm font-bold text-white shadow hover:bg-rose-600">
+            Post Polaroid ✨
+          </button>
+        </div>
+      </div>
+
+      <div id="photoGalleryGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- ==================== TAB 4: FYAD & LOKKHI SONG STUDIO ==================== -->
+    <section id="view-songs" class="view-section hidden space-y-6">
+      <div class="rounded-3xl bg-white/90 p-6 text-center shadow-md border border-rose-100">
+        <h2 class="handwriting text-3xl font-bold text-rose-600">Song & Voice Note Studio 🎸🎙️</h2>
+        <p class="text-xs text-rose-400 mt-1 mb-4">Record a song cover, guitar melody, or cute voice note for each other</p>
+
+        <div class="mx-auto max-w-md space-y-3">
+          <input type="text" id="songTitleInput" placeholder="Song or voice note title..." class="w-full rounded-xl border border-rose-200 px-4 py-2 text-sm text-center focus:border-rose-400 focus:outline-none" />
+
+          <div class="flex justify-center gap-3">
+            <button id="btnStartRecord" onclick="startRecording()" class="rounded-2xl bg-rose-500 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-rose-600">
+              🔴 Start Recording
+            </button>
+            <button id="btnStopRecord" onclick="stopRecording()" disabled class="rounded-2xl bg-gray-200 px-5 py-2.5 text-sm font-bold text-gray-500 disabled:opacity-50">
+              ⏹️ Stop & Save
+            </button>
+          </div>
+          <p id="recordingStatus" class="text-xs font-semibold text-rose-500 hidden animate-pulse">🎙️ Recording in progress... sing your heart out!</p>
+        </div>
+      </div>
+
+      <div id="songsPlaylist" class="space-y-3"></div>
+    </section>
+
+    <!-- ==================== TAB 5: COUPLE MINI-GAMES ==================== -->
+    <section id="view-games" class="view-section hidden space-y-6">
+      <!-- Game 1: Live Tic-Tac-Toe -->
+      <div class="rounded-3xl bg-white/90 p-6 text-center shadow-md border border-rose-100">
+        <h2 class="handwriting text-3xl font-bold text-rose-600">Live Hearts & Stars Tic-Tac-Toe 🌸🎸</h2>
+        <p class="text-xs text-rose-400 mb-4">Lokkhi is 🌸 • Fyad is 🎸 • Syncs live between your screens!</p>
+
+        <div id="tttBoard" class="mx-auto grid w-64 grid-cols-3 gap-2"></div>
+        <p id="tttStatus" class="mt-4 text-sm font-bold text-rose-600"></p>
+        <button onclick="resetTTT()" class="mt-3 rounded-xl bg-rose-100 px-4 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-200">
+          Reset Board 🔄
+        </button>
+      </div>
+
+      <!-- Game 2: Couple Truth or Dare / Date Prompt Spinner -->
+      <div class="rounded-3xl bg-white/90 p-6 text-center shadow-md border border-rose-100">
+        <h2 class="handwriting text-3xl font-bold text-rose-600">Couple Prompt & Date Jar 🎲</h2>
+        <p id="promptDisplay" class="my-4 min-h-[3rem] flex items-center justify-center rounded-2xl bg-rose-50 p-4 text-sm font-semibold text-rose-800">
+          Tap the button below to draw a cute question or mini-challenge!
+        </p>
+        <button onclick="drawCouplePrompt()" class="rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-2.5 text-sm font-bold text-white shadow hover:opacity-95">
+          Draw a Card ✨
+        </button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ==================== FIREBASE & APP LOGIC ==================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // =========================================================================
+    // 1. CHANGE YOUR SECRET PASSCODE HERE:
+    // =========================================================================
+    const SECRET_PASSCODE = "lokkhifyad";
+
+    // =========================================================================
+    // 2. PASTE YOUR FIREBASE CONFIG HERE:
+    // =========================================================================
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // State
+    let currentUser = localStorage.getItem("couple_user") || "Lokkhi";
+    let lastSeenHeartId = localStorage.getItem("last_heart_id") || "";
+
+    // -------------------- PASSCODE LOCK LOGIC --------------------
+    const lockScreen = document.getElementById("lockScreen");
+    const mainApp = document.getElementById("mainApp");
+
+    if (sessionStorage.getItem("couple_unlocked") === "true") {
+      lockScreen.classList.add("hidden");
+      mainApp.classList.remove("hidden");
+    }
+
+    document.getElementById("unlockForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = document.getElementById("passcodeInput").value.trim().toLowerCase();
+      if (input === SECRET_PASSCODE.toLowerCase()) {
+        sessionStorage.setItem("couple_unlocked", "true");
+        lockScreen.classList.add("hidden");
+        mainApp.classList.remove("hidden");
+      } else {
+        document.getElementById("passcodeError").classList.remove("hidden");
+      }
+    });
+
+    window.lockApp = () => {
+      sessionStorage.removeItem("couple_unlocked");
+      location.reload();
+    };
+
+    // -------------------- USER IDENTITY SWITCHER --------------------
+    window.setCurrentUser = (name) => {
+      currentUser = name;
+      localStorage.setItem("couple_user", name);
+      updateUserUI();
+    };
+
+    function updateUserUI() {
+      const btnL = document.getElementById("btnUserLokkhi");
+      const btnF = document.getElementById("btnUserFyad");
+      const partner = currentUser === "Lokkhi" ? "Fyad" : "Lokkhi";
+
+      document.getElementById("heartInstruction").textContent = `Tap the heart to ping ${partner} instantly!`;
+
+      if (currentUser === "Lokkhi") {
+        btnL.className = "rounded-xl px-3 py-1.5 text-xs font-bold bg-rose-500 text-white shadow";
+        btnF.className = "rounded-xl px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100";
+      } else {
+        btnF.className = "rounded-xl px-3 py-1.5 text-xs font-bold bg-rose-500 text-white shadow";
+        btnL.className = "rounded-xl px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100";
+      }
+    }
+    updateUserUI();
+
+    // -------------------- NAVIGATION TABS --------------------
+    window.switchTab = (tabName) => {
+      document.querySelectorAll(".view-section").forEach(el => el.classList.add("hidden"));
+      document.getElementById(`view-${tabName}`).classList.remove("hidden");
+
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.remove("bg-rose-500", "text-white", "shadow");
+        btn.classList.add("text-rose-600", "hover:bg-rose-50");
+      });
+      const activeBtn = document.getElementById(`tab-${tabName}`);
+      activeBtn.classList.add("bg-rose-500", "text-white", "shadow");
+      activeBtn.classList.remove("text-rose-600", "hover:bg-rose-50");
+    };
+    switchTab("heart");
+
+    // -------------------- SEND A HEART & NOTIFICATIONS --------------------
+    function spawnFloatingHearts() {
+      for (let i = 0; i < 12; i++) {
+        const heart = document.createElement("div");
+        heart.className = "floating-heart text-3xl";
+        heart.textContent = ["❤️", "💖", "💕", "🌸"][Math.floor(Math.random() * 4)];
+        heart.style.left = Math.random() * 90 + 5 + "vw";
+        heart.style.top = "75vh";
+        heart.style.animationDelay = Math.random() * 0.4 + "s";
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 2500);
+      }
+    }
+
+    window.sendHeart = (isReply) => {
+      const noteInput = document.getElementById("heartNoteInput");
+      const note = isReply ? "Sent a heart right back! 💖" : (noteInput.value.trim() || "Thinking of you!");
+      const partner = currentUser === "Lokkhi" ? "Fyad" : "Lokkhi";
+
+      push(ref(db, "hearts"), {
+        from: currentUser,
+        to: partner,
+        note: note,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      if (!isReply) noteInput.value = "";
+      spawnFloatingHearts();
+      document.getElementById("heartAlertBanner").classList.add("hidden");
+    };
+
+    onValue(ref(db, "hearts"), (snapshot) => {
+      const data = snapshot.val();
+      const list = document.getElementById("heartHistoryList");
+      list.innerHTML = "";
+      if (!data) return;
+
+      const entries = Object.entries(data).reverse();
+      const [latestId, latest] = entries[0];
+
+      // Notify if the latest heart was sent TO the current user
+      if (latest.to === currentUser && latestId !== lastSeenHeartId) {
+        lastSeenHeartId = latestId;
+        localStorage.setItem("last_heart_id", latestId);
+        const banner = document.getElementById("heartAlertBanner");
+        banner.classList.remove("hidden");
+        banner.classList.add("flex");
+        document.getElementById("heartAlertText").textContent = `${latest.from} sent you a heart! ❤️`;
+        document.getElementById("heartAlertSub").textContent = `"${latest.note}" • ${latest.timestamp}`;
+        spawnFloatingHearts();
+      }
+
+      entries.slice(0, 10).forEach(([, item]) => {
+        const div = document.createElement("div");
+        div.className = "flex items-center justify-between rounded-xl bg-rose-50/70 px-3 py-2 text-xs";
+        div.innerHTML = `
+          <span><strong>${item.from}</strong> → ${item.to}: <span class="text-rose-700">"${item.note}"</span></span>
+          <span class="text-rose-400">${item.timestamp}</span>
+        `;
+        list.appendChild(div);
+      });
+    });
+
+    // -------------------- SHARED DIARY --------------------
+    window.addDiaryEntry = () => {
+      const title = document.getElementById("diaryTitle").value.trim();
+      const body = document.getElementById("diaryBody").value.trim();
+      const mood = document.getElementById("diaryMood").value;
+      if (!body) return;
+
+      push(ref(db, "diary"), {
+        author: currentUser,
+        mood,
+        title: title || "Untitled Memory",
+        body,
+        date: new Date().toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+      });
+
+      document.getElementById("diaryTitle").value = "";
+      document.getElementById("diaryBody").value = "";
+    };
+
+    onValue(ref(db, "diary"), (snapshot) => {
+      const data = snapshot.val();
+      const container = document.getElementById("diaryEntriesList");
+      container.innerHTML = "";
+      if (!data) return;
+
+      Object.values(data).reverse().forEach(entry => {
+        const card = document.createElement("div");
+        card.className = "rounded-3xl bg-white/90 p-5 shadow-sm border border-rose-100";
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <span class="rounded-full bg-rose-100 px-3 py-0.5 text-xs font-bold text-rose-700">${entry.author} • ${entry.mood}</span>
+            <span class="text-xs text-rose-400">${entry.date}</span>
+          </div>
+          <h3 class="handwriting text-2xl font-bold text-rose-700">${entry.title}</h3>
+          <p class="mt-1 whitespace-pre-line text-sm text-rose-900 leading-relaxed">${entry.body}</p>
+        `;
+        container.appendChild(card);
+      });
+    });
+
+    // -------------------- POLAROID PHOTO ALBUM --------------------
+    window.uploadPhoto = () => {
+      const fileInput = document.getElementById("photoFileInput");
+      const caption = document.getElementById("photoCaptionInput").value.trim();
+      const file = fileInput.files[0];
+      if (!file) return alert("Please select or take a photo first!");
+
+      // Compress image via canvas so it stores smoothly in Realtime DB
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const maxW = 600;
+          const scale = maxW / img.width;
+          canvas.width = maxW;
+          canvas.height = img.height * scale;
+          canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.75);
+
+          push(ref(db, "photos"), {
+            author: currentUser,
+            caption: caption || "Us 💕",
+            image: compressedDataUrl,
+            date: new Date().toLocaleDateString()
+          });
+
+          fileInput.value = "";
+          document.getElementById("photoCaptionInput").value = "";
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    onValue(ref(db, "photos"), (snapshot) => {
+      const data = snapshot.val();
+      const grid = document.getElementById("photoGalleryGrid");
+      grid.innerHTML = "";
+      if (!data) return;
+
+      const tilts = ["-rotate-2", "rotate-2", "-rotate-1", "rotate-1"];
+      Object.values(data).reverse().forEach((photo, idx) => {
+        const card = document.createElement("div");
+        card.className = `polaroid rounded-lg ${tilts[idx % tilts.length]}`;
+        card.innerHTML = `
+          <img src="${photo.image}" class="aspect-square w-full object-cover rounded" />
+          <p class="handwriting mt-3 text-center text-2xl font-bold text-rose-800">${photo.caption}</p>
+          <p class="text-center text-[10px] text-rose-400">By ${photo.author} • ${photo.date}</p>
+        `;
+        grid.appendChild(card);
+      });
+    });
+
+    // -------------------- SONG & VOICE RECORDER --------------------
+    let mediaRecorder;
+    let audioChunks = [];
+
+    window.startRecording = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(audioChunks, { type: "audio/webm" });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const title = document.getElementById("songTitleInput").value.trim() || `${currentUser}'s Recording`;
+            push(ref(db, "songs"), {
+              author: currentUser,
+              title,
+              audio: reader.result,
+              date: new Date().toLocaleDateString()
+            });
+            document.getElementById("songTitleInput").value = "";
+          };
+          reader.readAsDataURL(blob);
+          stream.getTracks().forEach(t => t.stop());
+        };
+
+        mediaRecorder.start();
+        document.getElementById("btnStartRecord").disabled = true;
+        document.getElementById("btnStopRecord").disabled = false;
+        document.getElementById("btnStopRecord").className = "rounded-2xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white shadow";
+        document.getElementById("recordingStatus").classList.remove("hidden");
+      } catch (err) {
+        alert("Microphone access is needed to record songs!");
+      }
+    };
+
+    window.stopRecording = () => {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+        document.getElementById("btnStartRecord").disabled = false;
+        document.getElementById("btnStopRecord").disabled = true;
+        document.getElementById("btnStopRecord").className = "rounded-2xl bg-gray-200 px-5 py-2.5 text-sm font-bold text-gray-500";
+        document.getElementById("recordingStatus").classList.add("hidden");
+      }
+    };
+
+    onValue(ref(db, "songs"), (snapshot) => {
+      const data = snapshot.val();
+      const list = document.getElementById("songsPlaylist");
+      list.innerHTML = "";
+      if (!data) return;
+
+      Object.values(data).reverse().forEach(song => {
+        const div = document.createElement("div");
+        div.className = "rounded-2xl bg-white/90 p-4 shadow-sm border border-rose-100";
+        div.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-sm text-rose-700">🎵 ${song.title}</span>
+            <span class="text-xs text-rose-400">Sung by ${song.author} • ${song.date}</span>
+          </div>
+          <audio controls src="${song.audio}" class="w-full h-9"></audio>
+        `;
+        list.appendChild(div);
+      });
+    });
+
+    // -------------------- LIVE TIC-TAC-TOE GAME --------------------
+    const tttRef = ref(db, "games/ttt");
+
+    window.resetTTT = () => {
+      set(tttRef, {
+        board: ["", "", "", "", "", "", "", "", ""],
+        turn: "Lokkhi"
+      });
+    };
+
+    window.playTTT = (idx, currentBoard, turn) => {
+      if (currentBoard[idx] !== "" || turn !== currentUser) return;
+      const updated = [...currentBoard];
+      updated[idx] = currentUser === "Lokkhi" ? "🌸" : "🎸";
+      update(tttRef, {
+        board: updated,
+        turn: currentUser === "Lokkhi" ? "Fyad" : "Lokkhi"
+      });
+    };
+
+    onValue(tttRef, (snapshot) => {
+      const state = snapshot.val() || { board: ["", "", "", "", "", "", "", "", ""], turn: "Lokkhi" };
+      const boardEl = document.getElementById("tttBoard");
+      boardEl.innerHTML = "";
+
+      state.board.forEach((cell, i) => {
+        const btn = document.createElement("button");
+        btn.className = "flex h-20 w-20 items-center justify-center rounded-2xl bg-rose-50 text-3xl font-bold shadow-inner hover:bg-rose-100";
+        btn.textContent = cell;
+        btn.onclick = () => playTTT(i, state.board, state.turn);
+        boardEl.appendChild(btn);
+      });
+
+      document.getElementById("tttStatus").textContent =
+        state.turn === currentUser ? `Your turn (${currentUser})!` : `Waiting for ${state.turn}'s move...`;
+    });
+
+    // -------------------- COUPLE PROMPT SPINNER --------------------
+    const prompts = [
+      "Record a 15-second chorus of a song that reminds you of each other!",
+      "What is your favorite memory of us from this month?",
+      "Send a heart right now with 3 words describing your partner.",
+      "Plan our next virtual or in-person date in the diary!",
+      "Take a silly selfie right now and post it to our Polaroid album!",
+      "What is one small thing your partner did recently that made you smile?"
+    ];
+
+    window.drawCouplePrompt = () => {
+      const pick = prompts[Math.floor(Math.random() * prompts.length)];
+      document.getElementById("promptDisplay").textContent = pick;
+    };
+  </script>
+</body>
+</html>
